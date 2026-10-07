@@ -1,484 +1,444 @@
-# GNSS/INS 因子图优化 vs 扩展卡尔曼滤波 —— 消融实验复现
+# GNSS/INS Factor Graph Optimization vs. Extended Kalman Filter — An Ablation-Study Reproduction
 
-> **核心复现用纯 Python 标准库实现，零第三方依赖。**
-> 复现 Wen et al. (2021) *NAVIGATION* **第 4.3 / 4.4 节**的消融实验，
-> 并对其中的几处论证做了独立检验。
+> **The core reproduction uses only the Python standard library — zero third-party dependencies.**
+> It reproduces the ablation experiments of Sections 4.3 / 4.4 of Wen et al. (2021), *NAVIGATION*,
+> and independently tests several of the paper's arguments.
 >
-> 唯一例外：紧组合伪距实验 `expC2_tc_pseudorange.py` 用 numpy（理由见 §4）。
+> Chinese version: **[README.zh.md](README.zh.md)**
+>
+> The one exception: the tightly-coupled pseudorange experiment `expC2_tc_pseudorange.py` uses numpy (see §4).
 
 ---
 
-## 一句话结论
+## TL;DR
 
-> **论文把 FGO 优于 EKF 归因于「多轮迭代」。**
-> **但在本实验的系统里，Gauss-Newton 迭代次数对结果的影响是 10⁻¹³ 量级——即零。**
-> **把观测模型换成论文真正的紧组合伪距（对状态非线性）之后，这个结论依然成立**（实验 C2）。
-> 所以原因不是「模型仿射」，而是**代价函数是二次的**：L2 的 Newton 步两步就停，多迭代是空操作。
-> FGO 真正的收益来自窗口内的批处理平滑，而不是迭代次数。
+> **The paper attributes FGO's advantage over EKF to "multiple iterations."**
+> **In the system studied here, however, the Gauss-Newton iteration count affects the result at the 10⁻¹³ level — i.e. not at all.**
+> **Swapping in the paper's actual tightly-coupled pseudorange model (nonlinear in the state) leaves this conclusion intact** (Experiment C2).
+> The reason is therefore not that "the model is affine" but that **the cost function is quadratic**: an L2 Newton step reaches the exact minimum in two steps, so further iterations are no-ops.
+> FGO's real benefit comes from batch smoothing inside the window, not from the iteration count.
 >
-> **但有一条例外**：打开 robust kernel（非二次损失）后，迭代次数变成一等变量，
-> 而且**迭代越多反而越差**——IRLS 收敛到的鲁棒代价极小点不等于精度最优点（实验 C3）。
+> **There is one exception**: once a robust kernel (a non-quadratic loss) is enabled, the iteration count becomes a first-class variable — and **more iterations make the result worse**. The minimum of the robust cost that IRLS converges to is not the minimum-error point (Experiment C3).
 
 ---
 
-## 1. 这个仓库在做什么
+## 1. What this repository does
 
-Wen et al. (2021) 比较了两种 GNSS/INS 融合估计器：
+Wen et al. (2021) compare two GNSS/INS fusion estimators:
 
 | | EKF | FGO |
 |---|---|---|
-| 做法 | 逐历元递归：预测 → 更新 | 每来一个历元，把最近 K 个历元**一起重新优化** |
-| 历史 | 压缩进协方差矩阵（递推） | 窗口内的历史**显式保留**，一起求解 |
-| 每步求解规模 | 4 元方程组 | 4K 元方程组 |
+| Approach | Per-epoch recursion: predict → update | On each epoch, **re-optimize the last K epochs jointly** |
+| History | Compressed into a covariance matrix (recursive) | History in the window is **kept explicitly** and solved jointly |
+| Solve size per step | 4 unknowns | 4K unknowns |
 
-论文的结论是：FGO 精度显著优于 EKF，且**窗口越长、迭代次数越多，精度越好**。
+The paper concludes that FGO is significantly more accurate than EKF, and that **longer windows and more iterations both improve accuracy**.
 
-本仓库用**零依赖的纯 Python** 复现这套消融实验，逐项检验这些结论。
+This repository reproduces that ablation study in **dependency-free pure Python** and tests each of those claims.
 
 ---
 
-## 2. 四个原始实验与主要发现
+## 2. The four original experiments and their main findings
 
-### 实验 1 · 迭代次数消融 —— **「多轮迭代」没有作用**
+### Experiment 1 · Iteration-count ablation — **"multiple iterations" has no effect**
 
-固定窗口，只改变 Gauss-Newton 迭代次数（1 / 2 / 3 / 5 / 10 / 20 次）：
+Window fixed; only the Gauss-Newton iteration count is varied (1 / 2 / 3 / 5 / 10 / 20):
 
-| 窗口 K | 迭代 1 次 | 迭代 20 次 | **极差** |
+| Window K | 1 iteration | 20 iterations | **Spread** |
 |---|---|---|---|
 | 2 | 8.6155 m | 8.6155 m | **1.315e-13 m** |
 | 5 | 6.7743 m | 6.7743 m | **2.487e-14 m** |
 | 10 | 5.3180 m | 5.3180 m | **8.882e-16 m** |
 | 30 | 4.7159 m | 4.7159 m | **5.329e-15 m** |
 
-**极差在 1e-13 量级 = 浮点舍入误差 = 迭代次数不影响结果。**
+**A spread of order 1e-13 = floating-point rounding = the iteration count does not affect the result.**
 
-**原因**：本实验的所有模型都是**线性**的（运动模型、IMU 因子、GNSS 观测），
-因此目标函数是状态的**二次函数**，而牛顿法/Gauss-Newton 对二次函数**一步就到达精确极小点**。
-第二次迭代只是在原地打转。
+**Why**: every model in this experiment is **linear** (motion model, IMU factor, GNSS observation), so the objective is a **quadratic** function of the state, and Newton / Gauss-Newton reaches the exact minimum of a quadratic in **one step**. The second iteration merely marks time.
 
-> **这不代表「迭代无用」，但「模型非线性」不是它变得有用的原因。**
-> 实验 C2 把观测模型换成了论文真正的紧组合伪距 `ρ = ‖SV − X‖ + b`（对状态非线性），
-> L2 的极差仍然是 **0.000 m**；把窗口初值扰动到 **500 m**，也只多花一步、解完全不变。
-> 论文说这个非线性「平凡（trivial）」是对的。
+> **This does not mean "iterations are useless," but "model nonlinearity" is not what makes them useful.**
+> Experiment C2 replaces the observation model with the paper's actual tightly-coupled pseudorange `ρ = ‖SV − X‖ + b` (nonlinear in the state); the L2 spread is still **0.000 m**, and perturbing the window's initial guess to **500 m** costs only one extra step while the solution is completely unchanged. The paper's description of this nonlinearity as "trivial" is correct.
 >
-> 真正让迭代次数变得重要的是**代价函数不再二次**，即打开 robust kernel。见 §2B。
+> What actually makes the iteration count matter is **the cost function ceasing to be quadratic** — i.e. enabling a robust kernel. See §2B.
 
-### 实验 2 · 窗口大小扫描 —— 收益从 **K=3** 才开始
+### Experiment 2 · Window-size sweep — gains start only at **K=3**
 
-| 窗口 K | 1 | 2 | 3 | 5 | 10 | 30 | 150 | EKF |
+| Window K | 1 | 2 | 3 | 5 | 10 | 30 | 150 | EKF |
 |---|---|---|---|---|---|---|---|---|
-| 均值 (m) | **9.67** | **9.67** | 9.13 | 7.88 | 6.39 | 5.67 | **4.03** | 6.47 |
+| Mean (m) | **9.67** | **9.67** | 9.13 | 7.88 | 6.39 | 5.67 | **4.03** | 6.47 |
 
-**K=1 与 K=2 的结果逐位相同**（9.6717 / 0.6292 / 7.2808 / 26.4329）。
+**K=1 and K=2 give bit-identical results** (9.6717 / 0.6292 / 7.2808 / 26.4329).
 
-#### 一个结构性观察：K=1 和 K=2 时 FGO 退化为原始 GNSS
+#### A structural observation: at K=1 and K=2, FGO degenerates to raw GNSS
 
-数一下**未知数与约束数**：
+Count the **unknowns and constraints**:
 
-| 窗口 K | 未知数 4K | 约束数 6K−4 | 状态 |
+| Window K | Unknowns 4K | Constraints 6K−4 | Status |
 |---|---|---|---|
-| 1 | 4 | 4（含速度先验 2 行） | **恰定** |
-| 2 | 8 | 8 | **恰定** |
-| 3 | 12 | 14 | **超定** ← 从这里才开始真正的估计 |
-| 30 | 120 | 176 | 超定 |
+| 1 | 4 | 4 (including 2 rows of velocity prior) | **exactly determined** |
+| 2 | 8 | 8 | **exactly determined** |
+| 3 | 12 | 14 | **overdetermined** ← real estimation starts here |
+| 30 | 120 | 176 | overdetermined |
 
-**「恰定」= 方程组有唯一解 = 所有权重都不起作用。**
+**"Exactly determined" = the system has a unique solution = every weight becomes irrelevant.**
 
-实测：K=1 与 K=2 时，FGO 的**位置估计逐历元与原始 GNSS 测量相同**
-——多数历元偏差恰为 0.000e+00 m，最大偏差 K=1 时 1.8e-15 m、K=2 时 4.5e-13 m，都只是末位舍入。
-即**位置估计就是原始 GNSS 测量本身，没有任何平滑**。
+Measured: at K=1 and K=2, FGO's **position estimates are identical to the raw GNSS measurements** epoch by epoch — the deviation is exactly 0.000e+00 m on most epochs, with a maximum of 1.8e-15 m at K=1 and 4.5e-13 m at K=2, i.e. last-bit rounding only. In other words **the position estimate *is* the raw GNSS measurement, with no smoothing whatsoever**.
 
-> 这与「论文用 K=1 的 FGO 代表『单次迭代的 FGO』」这个设定有关——
-> 在该配置下 FGO 并未执行最小二乘估计。窗口精度的提升有明确的起点：**K=3**。
+> This bears on the paper's choice to use K=1 FGO to represent "single-iteration FGO" — under that configuration FGO performs no least-squares estimation at all. Window accuracy has a definite starting point: **K=3**.
 
-### 实验 3 · 噪声特性突变 —— 未复现论文 4.4 节的反例
+### Experiment 3 · Abrupt noise change — the Section 4.4 counterexample did not reproduce
 
-设置 GNSS 噪声在第 180 个历元从 6 m 突变到 12 m。论文 4.4 节主张长窗口在此情形下会因
-「把突变前的旧噪声特性搬到当前历元」而变差；本实验**未观察到该现象**。
+GNSS noise is switched from 6 m to 12 m at epoch 180. Section 4.4 argues that a long window degrades in this situation by "carrying the pre-change noise characteristics over to the current epoch"; **this experiment did not observe that**.
 
-### 实验 4 · 参数失配 —— **EKF 稳健，FGO 脆弱**（最有价值的一组）
+### Experiment 4 · Parameter mismatch — **EKF is robust, FGO is fragile** (the most valuable set)
 
-固定真实运动，只改变估计器**假定**的噪声参数：
+Ground-truth motion is fixed; only the noise parameters **assumed** by the estimator are changed:
 
-| | 正常 | 失配 | **恶化倍数** |
+| | Matched | Mismatched | **Degradation** |
 |---|---|---|---|
 | **EKF** | 5.293 m | 5.010 m | **1.06×** |
 | FGO K=10 | 6.036 m | 6.388 m | 1.06× |
 | **FGO K=30** | 5.781 m | **12.089 m** | **2.09×** |
 | FGO K=80 | 4.339 m | 8.613 m | 1.99× |
 
-**机制**：
+**Mechanism**:
 
-- **EKF** 在线维护协方差矩阵，靠它**自动**给模型与观测分配权重 → 参数设错时会自适应
-- **FGO** 把协方差取逆当**固定权重**，所有因子平权地塞进一个最小二乘问题 → 参数错了就错到底
+- **EKF** maintains a covariance matrix online and uses it to weight model and observations **automatically** → it adapts when parameters are set wrong.
+- **FGO** takes the inverse covariance as a **fixed weight** and puts every factor into one least-squares problem on equal footing → wrong parameters stay wrong.
 
-**而且失配时窗口大小的排序会反转**：正常时长窗口更好，失配时 K=30 反而比小窗口更差。
+**And under mismatch the window-size ordering reverses**: with matched parameters long windows win, but with mismatched parameters K=30 is worse than a small window.
 
 ---
 
-## 2B. 扩展实验：A / B / C
+## 2B. Extension experiments: A / B / C
 
-原始复现之后又做了三组扩展实验，脚本都在 `code/` 下。
+Three extension groups were run after the original reproduction; all scripts are under `code/`.
 
-| 组 | 脚本 | 问题 |
+| Group | Scripts | Question |
 |---|---|---|
-| **A** | `robust.py`、`expA_noise.py`、`expA3_*`、`expA4_*` | 噪声不是高斯时，FGO 的优势还成立吗？robust kernel 有用吗？ |
-| **B** | `expB_yaw.py` | 状态里加入姿态（旋转）后，求解器行为怎么变？ |
-| **C** | `expC1_delta_sweep.py`、`expC2_tc_pseudorange.py`、`expC3_iteration_multiseed.py` | 论文的紧组合模型能不能解释「迭代」这条结论？ |
+| **A** | `robust.py`, `expA_noise.py`, `expA3_*`, `expA4_*` | Does FGO's advantage hold when the noise is not Gaussian? Do robust kernels help? |
+| **B** | `expB_yaw.py` | How does the solver behave once orientation (rotation) is added to the state? |
+| **C** | `expC1_delta_sweep.py`, `expC2_tc_pseudorange.py`, `expC3_iteration_multiseed.py` | Can the paper's tightly-coupled model explain the "iterations" claim? |
 
-### A · 非高斯噪声与 robust kernel
+### A · Non-Gaussian noise and robust kernels
 
-原版 `sim.py` 的噪声**本来就不是高斯**：88% 的历元是 N(0, 6²)，
-另外 **12% 带确定性偏置 (15, 20) m**。真实 σ = **8.57 m**，而估计器一直按 6.0 m 加权，
-**把噪声低估了 1.4 倍**。
+The stock `sim.py` noise **was never Gaussian to begin with**: 88% of epochs are N(0, 6²), and the remaining **12% carry a deterministic bias of (15, 20) m**. The true σ is **8.57 m** while the estimator keeps weighting as if it were 6.0 m — **underestimating the noise by a factor of 1.4**.
 
-| 噪声 | Cauchy 相对 L2 的平均改善（K=20） |
+| Noise | Mean improvement of Cauchy over L2 (K=20) |
 |---|---|
-| 纯高斯（同方差） | −5.1% |
-| 拉普拉斯（重尾） | 更大 |
-| Student-t(ν=3) | 更大 |
-| **原版（含 12% 离群）** | **−25.1%** |
+| Pure Gaussian (homoscedastic) | −5.1% |
+| Laplace (heavy-tailed) | larger |
+| Student-t(ν=3) | larger |
+| **Stock (with 12% outliers)** | **−25.1%** |
 
-误差超过 15 m 的历元占比：**4.4% → 0.8%**。
+Share of epochs with error above 15 m: **4.4% → 0.8%**.
 
-### B · 加入旋转后，求解器不再「一步到位」
+### B · Once rotation is added, the solver no longer lands in one step
 
-| 模型 | 第 1 步跨的数量级 | 收敛所需步数 |
+| Model | Magnitude spanned by step 1 | Steps to converge |
 |---|---|---|
-| 2D 仿射 `[p, v]` | **14 个数量级**（= 数学上严格一步到位） | 2 |
-| 5D 带偏航 `[p, v, θ]` | 4.0 – 5.9，之后每步约 1.8 | 4（K=3）→ 10（K=20） |
+| 2D affine `[p, v]` | **14 orders of magnitude** (= mathematically exact in one step) | 2 |
+| 5D with yaw `[p, v, θ]` | 4.0 – 5.9, then ≈1.8 per step | 4 (K=3) → 10 (K=20) |
 
-**但精度收益有限。** 这条只说明「模型一旦非线性，求解器行为就变了」，
-不等于「多迭代能显著提升精度」。
+**But the accuracy gain is limited.** This only shows that "once the model is nonlinear, the solver's behaviour changes" — not that "more iterations significantly improve accuracy."
 
-### C1 · robust kernel 的 δ 敏感性
+### C1 · δ sensitivity of the robust kernel
 
-A 组全程用 δ = 2.0。把 δ 从 1.0 扫到 8.0：
+Group A used δ = 2.0 throughout. Sweeping δ from 1.0 to 8.0:
 
-| kernel | K=20 时相对 L2 的改善区间 |
+| Kernel | Improvement over L2 at K=20 |
 |---|---|
-| **Cauchy** | **+4.0% … +33.8%（全部为正）** |
-| Huber | +0.0% … +23.5%，**δ > 5 时归零** |
+| **Cauchy** | **+4.0% … +33.8% (positive throughout)** |
+| Huber | +0.0% … +23.5%, **vanishing for δ > 5** |
 
-**结论**：Cauchy 的收益**不是 δ 的调参巧合**（全区间为正），但**幅度差 30 个百分点**；
-Huber 的收益**依赖 δ 足够小**。所以「robust kernel 有用」这句话**必须带上 δ**。
+**Conclusion**: Cauchy's gain is **not a lucky δ tuning** (positive across the whole range), but its **magnitude varies by 30 percentage points**; Huber's gain **depends on δ being small enough**. So "robust kernels help" **must always be qualified by δ**.
 
-一条自检：δ = 8.0 时权重趋近 1，结果退回 L2 —— δ → ∞ 的极限应该如此，实测如此。
+A sanity check: at δ = 8.0 the weights approach 1 and the result falls back to L2 — which is what the δ → ∞ limit demands, and what was measured.
 
-### C2 · 紧组合伪距：非线性下迭代还有影响吗
+### C2 · Tightly-coupled pseudorange: does nonlinearity make iterations matter?
 
-按论文式 (32) 重建观测：`ρ = ‖SV − X‖ + b`，8 颗卫星，水平 GDOP **1.019**，
-每历元钟差作为额外状态，σ_ρ 标定到 **5.889 m** 使单历元水平精度与松组合的 6 m 对齐。
-12% 的历元有 1–2 颗星带 **+25 m** 的 NLOS 正偏置。
+The observation is rebuilt from the paper's Eq. (32): `ρ = ‖SV − X‖ + b`, 8 satellites, horizontal GDOP **1.019**, per-epoch clock bias as an extra state, σ_ρ calibrated to **5.889 m** so that single-epoch horizontal accuracy matches the 6 m of the loosely-coupled setup. On 12% of epochs, 1–2 satellites carry an NLOS positive bias of **+25 m**.
 
-| 检验 | 结果 |
+| Check | Result |
 |---|---|
-| L2 在非线性模型下，n_iter 1→30 的极差 | **0.000 m**（K = 2 / 3 / 10 / 20 全部逐位相同） |
-| 窗口初值扰动 0 / 10 / 100 / **500 m** | 迭代 2.42 / 3.00 / 3.00 / 3.00；最终误差**恒为 3.7029 m** |
-| Cauchy，n_iter 1→30，K=3 | 4.931 → 5.279 m（**+7.1%**） |
-| Cauchy，n_iter 1→30，K=10 | 3.105 → 3.367 m（**+8.4%**） |
-| Cauchy，n_iter 1→30，K=20 | 2.904 → 3.131 m（**+7.8%**） |
+| L2 spread over n_iter 1→30 on the nonlinear model | **0.000 m** (bit-identical for K = 2 / 3 / 10 / 20) |
+| Window initial-guess perturbation 0 / 10 / 100 / **500 m** | iterations 2.42 / 3.00 / 3.00 / 3.00; final error **constant at 3.7029 m** |
+| Cauchy, n_iter 1→30, K=3 | 4.931 → 5.279 m (**+7.1%**) |
+| Cauchy, n_iter 1→30, K=10 | 3.105 → 3.367 m (**+8.4%**) |
+| Cauchy, n_iter 1→30, K=20 | 2.904 → 3.131 m (**+7.8%**) |
 
-**两条结论**：
+**Two conclusions**:
 
-1. **模型非线性不足以让迭代影响精度。** 论文说「非线性平凡」是对的，而且比它说的还平凡。
-2. **「迭代越多越差」属于 robust kernel，不属于模型。** 同一现象在松组合与紧组合同样出现。
+1. **Model nonlinearity is not enough to make the iteration count affect accuracy.** The paper is right that the nonlinearity is "trivial" — and it is even more trivial than the paper says.
+2. **"More iterations is worse" belongs to the robust kernel, not to the model.** The same phenomenon appears in both the loosely- and tightly-coupled setups.
 
-**紧组合真正的贡献是短窗口下的冗余：**
+**The real contribution of tight coupling is redundancy at short windows:**
 
-| 配置 | K=2 时的自由度 | robust kernel 相对 L2 |
+| Setup | Degrees of freedom at K=2 | Robust kernel vs. L2 |
 |---|---|---|
-| 松组合 | 8 未知数 / 8 方程（**恰定**） | **1.7e-13 m** —— 数学上必定无效 |
-| 紧组合 | 10 未知数 / 21 方程（冗余 11） | huber **+1.8%**、cauchy **+1.7%** |
+| Loosely coupled | 8 unknowns / 8 equations (**exactly determined**) | **1.7e-13 m** — provably useless |
+| Tightly coupled | 10 unknowns / 21 equations (redundancy 11) | huber **+1.8%**, cauchy **+1.7%** |
 
-### C3 · 30 个种子 + 机制
+### C3 · 30 seeds + mechanism
 
-| 条件 | Cauchy，n_iter 1 → 30 | 胜出种子 | 符号检验 |
+| Condition | Cauchy, n_iter 1 → 30 | Seeds favouring n_iter=1 | Sign test |
 |---|---|---|---|
-| 原版（含离群），K=10 | 5.079 → 5.681 m（**+11.8%**） | **30/30** | **p = 1.9e-09** |
-| 原版（含离群），K=20 | 4.471 → 4.844 m（+8.3%） | **30/30** | **p = 1.9e-09** |
-| **纯高斯、关掉离群机制**，K=10 | 4.301 → 4.608 m（**+7.1%**） | **30/30** | **p = 1.9e-09** |
-| L2，任意 K | 差值为 0（浮点舍入） | — | — |
+| Stock (with outliers), K=10 | 5.079 → 5.681 m (**+11.8%**) | **30/30** | **p = 1.9e-09** |
+| Stock (with outliers), K=20 | 4.471 → 4.844 m (+8.3%) | **30/30** | **p = 1.9e-09** |
+| **Pure Gaussian, outlier mechanism disabled**, K=10 | 4.301 → 4.608 m (**+7.1%**) | **30/30** | **p = 1.9e-09** |
+| L2, any K | difference 0 (rounding) | — | — |
 
-**机制**（原版 K=10，30 个种子平均）：
+**Mechanism** (stock, K=10, averaged over 30 seeds):
 
-| 量 | n_iter = 1 | n_iter = 30 |
+| Quantity | n_iter = 1 | n_iter = 30 |
 |---|---|---|
-| 真实平均误差 | 5.079 m | **5.681 m（变差）** |
-| 鲁棒代价（IRLS 在最小化的东西） | 0.994 | **0.950（下降 4.4%）** |
-| GNSS 因子平均降权 | 0.752 | **0.762（松回）** |
+| True mean error | 5.079 m | **5.681 m (worse)** |
+| Robust cost (what IRLS minimizes) | 0.994 | **0.950 (down 4.4%)** |
+| Mean down-weighting of GNSS factors | 0.752 | **0.762 (relaxed)** |
 
-**IRLS 收敛得没错——是鲁棒代价的极小点不等于精度最优点。**
-迭代在部分撤销自己第一步施加的抑制。而且**纯高斯无离群时同样发生**，
-所以第一步 IRLS 的收益更像**收缩估计**，不是「剔除离群点」。
+**IRLS is converging correctly — it is the minimizer of the robust cost that is not the minimum-error point.** Later iterations partly undo the suppression the first step applied. And since **this happens with pure Gaussian noise and no outliers too**, the first IRLS step's gain looks more like **shrinkage estimation** than "outlier rejection."
 
 ---
 
-## 3. 快速上手
+## 3. Quick start
 
-核心实验**只需要 Python 3.8+，零第三方依赖**。
+The core experiments need **only Python 3.8+ and no third-party packages**.
 
 ```bash
 cd code
 
-# ① 线性代数模块自检
+# (1) linear algebra self-check
 python la.py
-#   预期：解 A x = b -> [1.0, 3.0]；加权最小二乘一步 -> 4.8
+#   expected: solve A x = b -> [1.0, 3.0]; weighted least squares in one step -> 4.8
 
-# ② 看仿真数据长什么样
+# (2) inspect the simulated data
 python sim.py
 
-# ③ 估计器快速自检（约 10 秒）
+# (3) estimator self-check (~10 s)
 python _selftest.py
 
-# ④ 跑原始四组实验（约 3–10 分钟）
+# (4) run the four original experiments (~3-10 min)
 python experiment.py
 
-# ⑤ 出图
+# (5) figures
 python make_figures.py
-#   然后用浏览器打开 ../results/fig1_window_vs_accuracy.svg
+#   then open ../results/fig1_window_vs_accuracy.svg in a browser
 
-# ⑥ 与 LAPACK 交叉验证（需要 numpy，仅作对照裁判）
+# (6) cross-validation against LAPACK (needs numpy; reference judge only)
 python verify_vs_numpy.py
 ```
 
-扩展实验（A / B 组同样是零依赖）：
+Extension experiments (groups A and B are also dependency-free):
 
 ```bash
-python robust.py                        噪声模型自检（方差对齐）
-python expA_noise.py                    实验 A0 / A1 / A2
-python expA3_robust_iteration_seeds.py  实验 A3（多种子）
-python expA4_robust_best.py             实验 A4（最优迭代次数下的完整网格）
-python expB_yaw.py                      实验 B1 / B2 / B3
-python expC1_delta_sweep.py             实验 C1（δ 敏感性扫描）
-python expC3_iteration_multiseed.py     实验 C3（30 种子 + 机制诊断）
-python _selftest_c2.py                  实验 C2 的分组自检
+python robust.py                        noise-model self-check (variance alignment)
+python expA_noise.py                    experiments A0 / A1 / A2
+python expA3_robust_iteration_seeds.py  experiment A3 (multi-seed)
+python expA4_robust_best.py             experiment A4 (full grid at the best iteration count)
+python expB_yaw.py                      experiments B1 / B2 / B3
+python expC1_delta_sweep.py             experiment C1 (delta sweep)
+python expC3_iteration_multiseed.py     experiment C3 (30 seeds + mechanism diagnosis)
+python _selftest_c2.py                  grouped self-check for experiment C2
 ```
 
-**需要 numpy** 的只有一个：
+Exactly one script **needs numpy**:
 
 ```bash
-python expC2_tc_pseudorange.py          实验 C2（紧组合伪距，见 §4）
+python expC2_tc_pseudorange.py          experiment C2 (tightly-coupled pseudorange, see §4)
 ```
 
-**性能提示**：`experiment.py` 里的 `N_SEEDS = 5` 会让实验 2 重复 5 次取均值。
-改成 `1` 可以更快（结果会略糙，趋势不变）。
-`expC3` 用 30 个种子，跑满约 1 小时。
+**Performance note**: `N_SEEDS = 5` in `experiment.py` makes Experiment 2 repeat 5 times and average. Setting it to `1` is faster (slightly noisier; the trend is unchanged). `expC3` uses 30 seeds and takes about an hour at full length.
 
 ---
 
-## 4. 为什么刻意不用 numpy
+## 4. Why numpy is deliberately avoided
 
-**这是设计选择，不是环境限制。**
+**This is a design choice, not an environment constraint.**
 
-手写线性代数让每一步数值都可追查——这正是本复现能定位到论文式 (22) 的量纲矛盾的关键；
-同时整个仓库 clone 下来直接能跑，任何人可以完整验证每一个数字，不必先配环境。
+Hand-written linear algebra makes every numerical step traceable — which is precisely what allowed this reproduction to pin down the dimensional inconsistency in the paper's Eq. (22). It also means the whole repository runs immediately after cloning, so anyone can verify every number without setting up an environment first.
 
-### 并且这是**可验证**的，不是单纯声明
+### And this is **verifiable**, not merely asserted
 
-| 验证项 | 结果 |
+| Check | Result |
 |---|---|
-| 与 LAPACK 交叉验证（真实滑动窗口问题） | 相对误差 **≤ 2.26e-14** |
-| 与 LAPACK 交叉验证（随机良态方程组） | 相对误差 **≤ 6.77e-16** |
-| 最优性独立复核（解处 ‖HᵀWr‖ 下降倍数） | **约 1e12 倍**，确为极小点 |
-| **屏蔽全部第三方库后跑主流程** | **全部通过** |
-| **固定种子重跑，四个 CSV 逐字节一致** | 通过 |
+| Cross-validation against LAPACK (a real sliding-window problem) | relative error **≤ 2.26e-14** |
+| Cross-validation against LAPACK (random well-conditioned systems) | relative error **≤ 6.77e-16** |
+| Independent optimality check (drop in ‖HᵀWr‖ at the solution) | **≈1e12×**, confirming a true minimum |
+| **Main pipeline with every third-party import blocked** | **passes** |
+| **Re-run with fixed seeds: the four CSVs are byte-identical** | passes |
 
-复现方式：
+To reproduce:
 
 ```bash
 cd code && python verify_vs_numpy.py
 ```
 
-> numpy 在这里**只作裁判**，不参与主流程。移除 numpy 后，
-> `la` / `sim` / `estimators` / `experiment` 全部照常运行。
+> numpy is used here **only as a judge** and takes no part in the main pipeline. With numpy removed, `la` / `sim` / `estimators` / `experiment` all run as before.
 
-### 唯一的例外：`expC2`
+### The single exception: `expC2`
 
-松组合模型的状态只有 4K 维，手写高斯消元完全够用。
-紧组合的窗口是 **5K 维**，而且每历元多出 8 个伪距因子 —— K=20 时就是 255 行 × 100 列的方程组，
-在一次实验里要解几千次（总网格 432 次运行 × 150 个历元 × 最多 30 次迭代）。
-**这个规模用手写求解器跑不动**，所以 `expC2` 用 numpy 做稠密求解。
+The loosely-coupled state is only 4K-dimensional, so a hand-written Gaussian elimination is entirely sufficient. The tightly-coupled window is **5K-dimensional** and adds 8 pseudorange factors per epoch — at K=20 that is a 255 × 100 system, solved several thousand times within one experiment (a 432-run grid × 150 epochs × up to 30 iterations). **That scale is not feasible with a hand-written solver**, so `expC2` uses numpy for the dense solve.
 
-包内用 numpy 的只有三个文件，都明确划出来了：
+Only three files in the package use numpy, and each is explicitly marked:
 
-| 文件 | 为什么用 numpy |
+| File | Why numpy |
 |---|---|
-| `expC2_tc_pseudorange.py` | 求解规模，见上 |
-| `_selftest_c2.py` | 它是 `expC2` 的分组自检，跟着用 |
-| `verify_vs_numpy.py` | numpy 在这里**只作裁判**，不参与主流程 |
+| `expC2_tc_pseudorange.py` | solve scale, see above |
+| `_selftest_c2.py` | it is `expC2`'s grouped self-check and follows it |
+| `verify_vs_numpy.py` | numpy **only as a judge**, not in the main pipeline |
 
-**其余所有实验（A 组、B 组、C1、C3）都走 `la.py` 的手写路径。**
+**Every other experiment (groups A and B, C1, C3) goes through the hand-written path in `la.py`.**
 
-**关于性能**：本复现**不主张**性能优势。手写求解器在重复调用下必然比 LAPACK 慢得多
-（实测 n=120 时纯 Python 约 112 ms）。写它的理由是**可查性与零依赖，不是速度**。
+**On performance**: this reproduction **claims no performance advantage**. A hand-written solver is necessarily far slower than LAPACK under repeated calls (measured ≈112 ms in pure Python at n=120). It was written for **traceability and zero dependencies, not speed**.
 
 ---
 
-## 5. 目录结构
+## 5. Repository layout
 
 ```
 .
-├── README.md
+├── README.md                    English (this file)
+├── README.zh.md                 Chinese
 ├── LICENSE
 ├── .gitignore
 ├── code/
-│   ├── la.py                    线性代数（矩阵运算 + 高斯消元 + 加权最小二乘）
-│   ├── verify_vs_numpy.py       与 LAPACK 交叉验证
-│   ├── sim.py                   合成数据生成（轨迹 + GNSS + IMU）
-│   ├── estimators.py            EKF 与 FGO 的实现（核心）
-│   ├── experiment.py            原始四组实验
-│   ├── plot.py                  手写 SVG 绘图（零依赖）
-│   ├── make_figures.py          把 CSV 变成 SVG
-│   ├── run_all.py               一键跑全套并把输出存日志
-│   ├── _selftest.py             快速自检
-│   ├── _selftest_c2.py          紧组合分组自检
-│   ├── _calib.py / _calib2.py   噪声协方差标定工具
-│   ├── robust.py                非高斯噪声模型 + robust kernel（实验 A）
-│   ├── expA_noise.py            实验 A0 / A1 / A2
+│   ├── la.py                    linear algebra (matrix ops + Gaussian elimination + WLS)
+│   ├── verify_vs_numpy.py       cross-validation against LAPACK
+│   ├── sim.py                   synthetic data generation (trajectory + GNSS + IMU)
+│   ├── estimators.py            EKF and FGO implementations (core)
+│   ├── experiment.py            the four original experiments
+│   ├── plot.py                  hand-written SVG plotting (dependency-free)
+│   ├── make_figures.py          CSV -> SVG
+│   ├── run_all.py               run everything and log the output
+│   ├── _selftest.py             quick self-check
+│   ├── _selftest_c2.py          tightly-coupled grouped self-check
+│   ├── _calib.py / _calib2.py   noise-covariance calibration tools
+│   ├── robust.py                non-Gaussian noise models + robust kernels (group A)
+│   ├── expA_noise.py            experiments A0 / A1 / A2
 │   ├── expA3_robust_iteration_seeds.py
 │   ├── expA4_robust_best.py
-│   ├── expB_yaw.py              实验 B（5D 带偏航）
-│   ├── expC1_delta_sweep.py     实验 C1
-│   ├── expC2_tc_pseudorange.py  实验 C2（用 numpy）
+│   ├── expB_yaw.py              experiment B (5D with yaw)
+│   ├── expC1_delta_sweep.py     experiment C1
+│   ├── expC2_tc_pseudorange.py  experiment C2 (uses numpy)
 │   ├── expC3_iteration_multiseed.py
-│   ├── make_figures_ext.py      实验 A / B 出图（SVG，零依赖）
-│   └── requirements.txt         依赖说明（仅 expC2 需要 numpy）
-├── docs/
-│   ├── 结果摘要.md               一页纸摘要
-│   ├── 原理讲解.md               算法原理
-│   ├── 代码逐行分析.md            逐函数讲解
-│   ├── 论文讲解_对照复现版.md      论文与复现的逐节对照
-│   └── 缩写与术语总表.md          符号与缩写
+│   ├── make_figures_ext.py      figures for groups A / B (SVG, dependency-free)
+│   └── requirements.txt         dependency note (numpy needed for expC2 only)
+├── docs/                        (Chinese working notes; see docs/README.md for an English index)
+│   ├── README.md                English index of the five Chinese documents
+│   ├── 结果摘要.md               one-page summary
+│   ├── 原理讲解.md               algorithm walkthrough
+│   ├── 代码逐行分析.md            function-by-function analysis
+│   ├── 论文讲解_对照复现版.md      section-by-section paper vs. reproduction
+│   └── 缩写与术语总表.md          symbols and abbreviations
 └── results/
-    ├── exp1..exp4_*.csv         原始四组实验
-    ├── expA1..expA4_*.csv       实验 A
-    ├── expB1..expB3_*.csv       实验 B
-    ├── expC1_delta_sweep.csv    实验 C1
-    ├── expC2a/b/c_*.csv         实验 C2
-    ├── expC3_*.csv              实验 C3（含逐种子配对结果）
-    ├── *_console.txt            各次运行的完整控制台输出
+    ├── exp1..exp4_*.csv         the four original experiments
+    ├── expA1..expA4_*.csv       experiment group A
+    ├── expB1..expB3_*.csv       experiment group B
+    ├── expC1_delta_sweep.csv    experiment C1
+    ├── expC2a/b/c_*.csv         experiment C2
+    ├── expC3_*.csv              experiment C3 (incl. per-seed paired results)
+    ├── *_console.txt            full console output of each run
     ├── fig1_window_vs_accuracy.png / .svg
-    └── fig2..figB3_*.svg        其余图
+    └── fig2..figB3_*.svg        remaining figures
 ```
 
-> 实验 C 的三张 PNG 图由脚本单独生成，不在本仓库内（那一步用 matplotlib，
-> 与「零依赖」原则冲突，所以留在仓库外）。
+> The three PNG figures for experiment group C are generated by a separate script and are not in this repository (that step uses matplotlib, which conflicts with the zero-dependency principle, so it stays outside).
 
 ---
 
-## 6. 实现要点
+## 6. Implementation notes
 
-### 状态与模型（2D 松组合）
+### State and models (2D loosely coupled)
 
-状态为 4 维 `x = [E, N, vE, vN]ᵀ`；批量优化时把窗口内 K 个历元拼成 4K 维向量。
+The state is 4-dimensional, `x = [E, N, vE, vN]ᵀ`; in batch optimization the K epochs in the window are stacked into a 4K vector.
 
-三类因子：
+Three factor types:
 
-| 因子 | 约束 | 说明 |
+| Factor | Constrains | Definition |
 |---|---|---|
-| **运动模型因子** | **只管位置** | `p_{g+1} = p_g + v_g·Δt` |
-| **IMU 因子** | **只管速度** | `v_{g+1} = v_g + a_g·Δt` |
-| **GNSS 因子** | 位置观测 | `p_g = z_g` |
+| **Motion-model factor** | **position only** | `p_{g+1} = p_g + v_g·Δt` |
+| **IMU factor** | **velocity only** | `v_{g+1} = v_g + a_g·Δt` |
+| **GNSS factor** | position observation | `p_g = z_g` |
 
-> **运动模型因子不能约束速度。** 若给它加上一行 `v_{g+1} = v_g`，
-> 等于隐含「加速度恒为 0」，与 IMU 因子直接冲突，会导致**长窗口反而更差**（趋势反转）。
-> 论文式 (21) 的 `h_MM` 只写位置、速度递推完全由 INS 因子（式 25）负责——
-> 这与本实现一致。
+> **The motion-model factor must not constrain velocity.** Adding a row `v_{g+1} = v_g` to it implies "acceleration is always zero," which directly contradicts the IMU factor and makes **long windows perform worse** (the trend reverses). In the paper, `h_MM` in Eq. (21) writes position only, and the velocity recursion is handled entirely by the INS factor (Eq. 25) — which matches this implementation.
 
-### 求解器
+### Solver
 
-Gauss-Newton 正规方程 `(HᵀWH)ΔX = −HᵀWr`，用**列主元高斯消元**求解。
+Gauss-Newton normal equations `(HᵀWH)ΔX = −HᵀWr`, solved by **Gaussian elimination with partial pivoting**.
 
-两个值得注意的工程细节：
+Two engineering details worth noting:
 
-1. **相对主元阈值**：判据用 `1e-10 × 矩阵最大元素`，而非固定值。
-   理由不是「数值可能很小」，而是**尺度不变性**——把 `Ax=b` 两边同乘常数解不变，
-   所以判据必须跟着问题尺度走。实测：同一方程缩放到 1e-12 倍时，
-   绝对阈值报奇异而相对阈值正常。
-2. **白化**：用 `√W` 缩放 `H` 与 `r`，使 `HᵀWH = (√W H)ᵀ(√W H)`。
-   好处是省内存与通用性（Σ 非对角时用 Cholesky 因子）。
-   **它不改变条件数**——两者是数学上同一个矩阵（实测 cond 比值 1.000000）。
+1. **Relative pivot threshold**: the criterion is `1e-10 × largest matrix element`, not a fixed value. The reason is not "values may be small" but **scale invariance** — multiplying both sides of `Ax=b` by a constant leaves the solution unchanged, so the threshold must follow the problem's scale. Measured: scaling the same system by 1e-12 makes an absolute threshold report singularity while the relative threshold behaves normally.
+2. **Whitening**: scale `H` and `r` by `√W` so that `HᵀWH = (√W H)ᵀ(√W H)`. This saves memory and generalizes (use a Cholesky factor when Σ is non-diagonal). **It does not change the condition number** — the two are mathematically the same matrix (measured cond ratio 1.000000).
 
-### 对论文的两处观察
+### Two observations about the paper
 
-在复现过程中发现两处值得与作者确认的地方（**可能是本实现的参数标定方式所致，不排除理解有误**）：
+Two points worth confirming with the authors came up during the reproduction (**these may stem from how this implementation calibrates its parameters; a misunderstanding is not ruled out**):
 
-1. **式 (21) / (22) 的维度**：式 (21) 的 `h_MM` 只写位置，但式 (22) 的协方差
-   同时给出位置与速度分量的标准差。若运动模型因子不约束速度，
-   速度分量的方差在该因子中不应出现。
-2. **式 (22) 的数值**：按原文取值（位置 0.3 m、速度 0.01 m/s）标定时，
-   窗口趋势与论文结论相反（长窗口更差）。改用**在真值轨迹上标定**得到的参数
-   （位置 0.6 m、速度 0.7 m/s）后趋势恢复正常。
-   量得的 IMU 因子实际残差 RMS 是 0.265 m/s，而式 (27) 假定 0.15 m/s（紧约 1.8 倍）。
+1. **Dimensions in Eqs. (21)/(22)**: `h_MM` in Eq. (21) writes position only, yet the covariance in Eq. (22) gives standard deviations for both position and velocity components. If the motion-model factor does not constrain velocity, the velocity variance should not appear in that factor.
+2. **Values in Eq. (22)**: calibrating with the values as printed (position 0.3 m, velocity 0.01 m/s) reverses the window trend relative to the paper's conclusion (longer windows are worse). Calibrating on the ground-truth trajectory instead (position 0.6 m, velocity 0.7 m/s) restores the expected trend. The measured IMU-factor residual RMS is 0.265 m/s, whereas Eq. (27) assumes 0.15 m/s (about 1.8× tighter).
 
-> 噪声协方差必须在自己的数据上标定——这本身与论文 4.4 节的精神一致。
+> Noise covariances must be calibrated on one's own data — which is itself consistent with the spirit of the paper's Section 4.4.
 
 ---
 
-## 7. 局限（必须诚实说明）
+## 7. Limitations (stated honestly)
 
-| # | 局限 | 影响 |
+| # | Limitation | Impact |
 |---|---|---|
-| 1 | **使用合成数据，不是真实数据集** | **绝对米数没有意义**，有意义的只有**趋势**与**配置间的相对差别** |
-| 2 | ~~未实现 TC（紧组合）~~ **已补做（实验 C2）** | 见下方说明 |
-| 3 | 去掉了加速度计零偏状态 | 简化，可能让结果偏乐观 |
-| 4 | **2 维平面模型**（实验 B 增加了偏航） | 无 ECEF/ENU 坐标变换，无完整姿态估计 |
-| 5 | 仿真 IMU 为 1 Hz | 真实 IMU 通常为 100 Hz |
-| 6 | 实验 C2 的星座是理想化的 | 8 颗星方位/仰角固定不随时间变化，几何静态（GDOP 1.019 偏乐观） |
-| 7 | 实验 C2 没有实现紧组合 EKF | 要论证的是 FGO 自身的性质，不需要再引入一个估计器 |
-| 8 | robust kernel 的收益依赖 δ | C1 实测：Cauchy 全区间为正但幅度差 30 个百分点；Huber 在 δ > 5 时归零 |
+| 1 | **Synthetic data, not a real dataset** | **Absolute metre figures are meaningless**; only **trends** and **relative differences between configurations** are meaningful |
+| 2 | ~~TC (tight coupling) not implemented~~ **now added (Experiment C2)** | see below |
+| 3 | Accelerometer bias states omitted | simplification; may make results optimistic |
+| 4 | **2D planar model** (Experiment B adds yaw) | no ECEF/ENU transforms, no full attitude estimation |
+| 5 | Simulated IMU at 1 Hz | real IMUs are typically 100 Hz |
+| 6 | Experiment C2's constellation is idealized | 8 satellites with fixed azimuth/elevation, static geometry (GDOP 1.019 is optimistic) |
+| 7 | Experiment C2 implements no tightly-coupled EKF | the point is a property of FGO itself; a second estimator is unnecessary |
+| 8 | Robust-kernel gains depend on δ | C1: Cauchy positive throughout but varying by 30 percentage points; Huber vanishes for δ > 5 |
 
-### 关于第 2 条（已解决）
+### On limitation 2 (resolved)
 
-原来这里写的是「实现的是 LC，非论文的 TC，模型全部线性；**这可能正是未复现出
-FGO 大优势的原因**」。实验 C2 把 TC 补上了，结论是：
+This originally read: "what is implemented is LC, not the paper's TC, and all models are linear; **this may be exactly why FGO's large advantage did not reproduce**." Experiment C2 added TC, with the conclusion:
 
-**紧组合真正的贡献是短窗口下的冗余，不是视线方向的非线性。**
-K=2 时松组合 8 未知数 / 8 方程（恰定，robust kernel 数学上无效），
-紧组合 10 未知数 / 21 方程（冗余 11，robust kernel 立刻有 1.7–1.8% 的收益）。
+**The real contribution of tight coupling is redundancy at short windows, not line-of-sight nonlinearity.**
+At K=2 the loosely-coupled setup has 8 unknowns / 8 equations (exactly determined, robust kernels provably useless), while the tightly-coupled setup has 10 unknowns / 21 equations (redundancy 11) and robust kernels immediately gain 1.7–1.8%.
 
-### 关于第 1 条
+### On limitation 1
 
-仿真数据的好处是**真值 100% 准确、噪声特性完全可控**，因此
-「窗口大小 → 精度」这条因果链是干净的。真实数据集里真值本身有 5–10 cm 误差、
-噪声特性还随时间漂移，会掩盖要观察的效应。
+The advantage of synthetic data is that the **ground truth is 100% accurate and the noise characteristics are fully controllable**, so the causal chain "window size → accuracy" is clean. In real datasets the ground truth itself carries 5–10 cm of error and the noise characteristics drift over time, masking the effect one wants to observe.
 
-**先用仿真把机制搞清楚、再上真实数据，是常规的研究顺序。**
-下一步计划是在 [UrbanNav](https://github.com/weisongwen/UrbanNavDataset) 数据集上做真实数据版。
+**Understanding the mechanism in simulation first and moving to real data afterwards is the usual research order.** The next step is a real-data version on the [UrbanNav](https://github.com/weisongwen/UrbanNavDataset) dataset.
 
-### 哪些结论**不依赖**数据真假
+### Which conclusions do **not** depend on the data being real
 
-| 结论 | 依赖数据吗 |
+| Conclusion | Data-dependent? |
 |---|---|
-| 实验 1：迭代次数无影响 | 不依赖——这是**数学性质**（二次代价 ⇒ 牛顿一步到位） |
-| C2：换到非线性模型后仍无影响 | 不依赖——同上，且已用两套观测模型互相印证 |
-| K=1/K=2 恰定 → 位置=原始 GNSS | 不依赖——这是**约束计数**，纯代数 |
-| C2b：紧组合 K=2 有冗余 → robust 复活 | 不依赖——这是**约束计数** |
-| C3：多迭代反而更差 | 不依赖方向（30/30）——但**幅度**依赖数据 |
-| 实验 4 的机制：EKF 靠协方差自适应、FGO 靠固定权重 | 大体不依赖——这是**结构性**差异 |
-| 式 (22) 的量纲观察 | 不依赖——这是论文**自身**的内部一致性 |
-| **具体米数** | **完全依赖**——换数据就变 |
+| Experiment 1: iteration count has no effect | No — it is a **mathematical property** (quadratic cost ⇒ Newton lands in one step) |
+| C2: still no effect after switching to a nonlinear model | No — same as above, and corroborated by two independent observation models |
+| K=1/K=2 exactly determined → position = raw GNSS | No — this is **constraint counting**, pure algebra |
+| C2b: tight coupling has redundancy at K=2 → robust kernels revive | No — this is **constraint counting** |
+| C3: more iterations is worse | Not for the **direction** (30/30) — but the **magnitude** is data-dependent |
+| Experiment 4's mechanism: EKF adapts via covariance, FGO uses fixed weights | Largely no — this is a **structural** difference |
+| The dimensional observation on Eq. (22) | No — it concerns the paper's **internal** consistency |
+| **The specific metre figures** | **Yes, entirely** — they change with the data |
 
 ---
 
-## 8. 复现的论文
+## 8. The paper reproduced
 
 > Wen, W., Pfeifer, T., Bai, X., & Hsu, L.-T. (2021).
 > **Factor graph optimization for GNSS/INS integration: A comparison with the extended Kalman filter.**
 > *NAVIGATION: Journal of the Institute of Navigation*, 68(2), 315–331.
 > https://doi.org/10.1002/navi.421
 
-相关工作：
+Related work:
 
 - Hsu, L.-T., Kubo, N., Wen, W., Chen, W., Liu, Z., Suzuki, T., & Meguro, J. (2021).
   UrbanNav: An open-sourced multisensory dataset for benchmarking positioning algorithms designed for urban areas.
   *ION GNSS+ 2021*, 226–256.
 
-**本仓库为独立复现，与论文作者无关。** 文中对原文的观察仅为技术讨论，欢迎指正。
+**This repository is an independent reproduction and is not affiliated with the paper's authors.** Observations about the original text are technical discussion only; corrections are welcome.
 
 ---
 
-## 9. 许可
+## 9. License
 
-MIT License，见 [LICENSE](LICENSE)。
+MIT License, see [LICENSE](LICENSE).
