@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560">
+<rect width="900" height="560" fill="#ffffff"/>
+<rect x="90.00" y="60.00" width="560.00" height="420.00" fill="#fcfcfc" stroke="#999" stroke-width="1.2" opacity="1.0"/>
+<line x1="90.00" y1="480.00" x2="650.00" y2="480.00" stroke="#e2e2e2" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="484.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">4.31</text>
+<line x1="90.00" y1="410.00" x2="650.00" y2="410.00" stroke="#e2e2e2" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="414.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">5.74</text>
+<line x1="90.00" y1="340.00" x2="650.00" y2="340.00" stroke="#e2e2e2" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="344.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">7.16</text>
+<line x1="90.00" y1="270.00" x2="650.00" y2="270.00" stroke="#e2e2e2" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="274.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">8.58</text>
+<line x1="90.00" y1="200.00" x2="650.00" y2="200.00" stroke="#e2e2e2" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="204.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">10.00</text>
+<line x1="90.00" y1="130.00" x2="650.00" y2="130.00" stroke="#e2e2e2" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="134.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">11.42</text>
+<line x1="90.00" y1="60.00" x2="650.00" y2="60.00" stroke="#e2e2e2" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="64.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">12.84</text>
+<line x1="90.00" y1="480.00" x2="90.00" y2="485.00" stroke="#999" stroke-width="1.2" opacity="1.0"/>
+<text x="90.0" y="502.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">0.15</text>
+<line x1="650.00" y1="480.00" x2="650.00" y2="485.00" stroke="#999" stroke-width="1.2" opacity="1.0"/>
+<text x="650.0" y="502.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">0.7</text>
+<text x="450.0" y="28.0" font-family="sans-serif" font-size="18" fill="#222" text-anchor="middle" font-weight="bold">图 4  噪声协方差参数敏感性：EKF 稳健 vs FGO 敏感</text>
+<text x="370.0" y="534.0" font-family="sans-serif" font-size="14" fill="#222" text-anchor="middle" font-weight="normal">估计器假定的 IMU 因子标准差 σ_v (m/s)</text>
+<text x="20.0" y="270.0" font-family="sans-serif" font-size="14" fill="#222" text-anchor="middle" font-weight="normal" transform="rotate(-90 20 270.0)">二维水平平均误差 (m)</text>
+<polyline points="650.00,431.55 90.00,445.37 650.00,431.77 90.00,445.73" fill="none" stroke="#7f7f7f" stroke-width="2.4" stroke-dasharray="8,5" opacity="1.0" stroke-linejoin="round"/>
+<circle cx="650.00" cy="431.55" r="3.60" fill="#7f7f7f" stroke="none" stroke-width="1.0"/>
+<circle cx="90.00" cy="445.37" r="3.60" fill="#7f7f7f" stroke="none" stroke-width="1.0"/>
+<circle cx="650.00" cy="431.77" r="3.60" fill="#7f7f7f" stroke="none" stroke-width="1.0"/>
+<circle cx="90.00" cy="445.73" r="3.60" fill="#7f7f7f" stroke="none" stroke-width="1.0"/>
+<polyline points="650.00,439.93 90.00,437.35 650.00,395.19 90.00,377.87" fill="none" stroke="#d62728" stroke-width="2.4" opacity="1.0" stroke-linejoin="round"/>
+<circle cx="650.00" cy="439.93" r="3.60" fill="#d62728" stroke="none" stroke-width="1.0"/>
+<circle cx="90.00" cy="437.35" r="3.60" fill="#d62728" stroke="none" stroke-width="1.0"/>
+<circle cx="650.00" cy="395.19" r="3.60" fill="#d62728" stroke="none" stroke-width="1.0"/>
+<circle cx="90.00" cy="377.87" r="3.60" fill="#d62728" stroke="none" stroke-width="1.0"/>
+<polyline points="650.00,467.05 90.00,453.83 650.00,407.74 90.00,97.00" fill="none" stroke="#2ca02c" stroke-width="2.4" opacity="1.0" stroke-linejoin="round"/>
+<circle cx="650.00" cy="467.05" r="3.60" fill="#2ca02c" stroke="none" stroke-width="1.0"/>
+<circle cx="90.00" cy="453.83" r="3.60" fill="#2ca02c" stroke="none" stroke-width="1.0"/>
+<circle cx="650.00" cy="407.74" r="3.60" fill="#2ca02c" stroke="none" stroke-width="1.0"/>
+<circle cx="90.00" cy="97.00" r="3.60" fill="#2ca02c" stroke="none" stroke-width="1.0"/>
+<rect x="662.00" y="56.00" width="230.00" height="104.00" fill="#ffffff" stroke="#ccc" stroke-width="1.0" opacity="1.0"/>
+<line x1="668.00" y1="70.00" x2="698.00" y2="70.00" stroke="#7f7f7f" stroke-width="2.6" stroke-dasharray="8,5" opacity="1.0"/>
+<circle cx="683.00" cy="70.00" r="3.60" fill="#7f7f7f" stroke="none" stroke-width="1.0"/>
+<text x="706.0" y="74.0" font-family="sans-serif" font-size="12.5" fill="#222" text-anchor="start" font-weight="normal">EKF（对参数不敏感）</text>
+<line x1="668.00" y1="94.00" x2="698.00" y2="94.00" stroke="#d62728" stroke-width="2.6" opacity="1.0"/>
+<circle cx="683.00" cy="94.00" r="3.60" fill="#d62728" stroke="none" stroke-width="1.0"/>
+<text x="706.0" y="98.0" font-family="sans-serif" font-size="12.5" fill="#222" text-anchor="start" font-weight="normal">FGO K=10</text>
+<line x1="668.00" y1="118.00" x2="698.00" y2="118.00" stroke="#2ca02c" stroke-width="2.6" opacity="1.0"/>
+<circle cx="683.00" cy="118.00" r="3.60" fill="#2ca02c" stroke="none" stroke-width="1.0"/>
+<text x="706.0" y="122.0" font-family="sans-serif" font-size="12.5" fill="#222" text-anchor="start" font-weight="normal">FGO K=30</text>
+</svg>

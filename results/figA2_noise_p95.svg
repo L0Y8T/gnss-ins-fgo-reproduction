@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="520" viewBox="0 0 900 520">
+<rect width="900" height="520" fill="#ffffff"/>
+<rect x="90.00" y="60.00" width="560.00" height="380.00" fill="#fcfcfc" stroke="#999" stroke-width="1.2" opacity="1.0"/>
+<line x1="90.00" y1="440.00" x2="650.00" y2="440.00" stroke="#e8e8e8" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="444.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">0.0</text>
+<line x1="90.00" y1="376.67" x2="650.00" y2="376.67" stroke="#e8e8e8" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="380.7" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">3.0</text>
+<line x1="90.00" y1="313.33" x2="650.00" y2="313.33" stroke="#e8e8e8" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="317.3" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">6.0</text>
+<line x1="90.00" y1="250.00" x2="650.00" y2="250.00" stroke="#e8e8e8" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="254.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">9.0</text>
+<line x1="90.00" y1="186.67" x2="650.00" y2="186.67" stroke="#e8e8e8" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="190.7" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">12.0</text>
+<line x1="90.00" y1="123.33" x2="650.00" y2="123.33" stroke="#e8e8e8" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="127.3" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">15.0</text>
+<line x1="90.00" y1="60.00" x2="650.00" y2="60.00" stroke="#e8e8e8" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="64.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">18.0</text>
+<rect x="105.68" y="252.42" width="18.14" height="187.58" fill="#1f77b4" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="114.8" y="246.4" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">8.87</text>
+<rect x="125.84" y="269.17" width="18.14" height="170.83" fill="#d62728" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="134.9" y="263.2" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">8.08</text>
+<rect x="146.00" y="269.88" width="18.14" height="170.12" fill="#2ca02c" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="155.1" y="263.9" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">8.05</text>
+<rect x="166.16" y="269.92" width="18.14" height="170.08" fill="#ff7f0e" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="175.2" y="263.9" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">8.05</text>
+<text x="146.0" y="462.0" font-family="sans-serif" font-size="12.5" fill="#444" text-anchor="middle" font-weight="normal">纯高斯
+σ=6.0</text>
+<rect x="217.68" y="248.56" width="18.14" height="191.44" fill="#1f77b4" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="226.8" y="242.6" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">9.06</text>
+<rect x="237.84" y="262.88" width="18.14" height="177.12" fill="#d62728" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="246.9" y="256.9" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">8.38</text>
+<rect x="258.00" y="269.14" width="18.14" height="170.86" fill="#2ca02c" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="267.1" y="263.1" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">8.08</text>
+<rect x="278.16" y="282.54" width="18.14" height="157.46" fill="#ff7f0e" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="287.2" y="276.5" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">7.45</text>
+<text x="258.0" y="462.0" font-family="sans-serif" font-size="12.5" fill="#444" text-anchor="middle" font-weight="normal">拉普拉斯
+σ=6.0</text>
+<rect x="329.68" y="260.98" width="18.14" height="179.02" fill="#1f77b4" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="338.8" y="255.0" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">8.47</text>
+<rect x="349.84" y="270.07" width="18.14" height="169.93" fill="#d62728" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="358.9" y="264.1" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">8.04</text>
+<rect x="370.00" y="292.43" width="18.14" height="147.57" fill="#2ca02c" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="379.1" y="286.4" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">6.98</text>
+<rect x="390.16" y="303.50" width="18.14" height="136.50" fill="#ff7f0e" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="399.2" y="297.5" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">6.46</text>
+<text x="370.0" y="462.0" font-family="sans-serif" font-size="12.5" fill="#444" text-anchor="middle" font-weight="normal">Student-t(3)
+σ=6.0</text>
+<rect x="441.68" y="233.54" width="18.14" height="206.46" fill="#1f77b4" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="450.8" y="227.5" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">9.77</text>
+<rect x="461.84" y="254.46" width="18.14" height="185.54" fill="#d62728" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="470.9" y="248.5" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">8.78</text>
+<rect x="482.00" y="273.31" width="18.14" height="166.69" fill="#2ca02c" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="491.1" y="267.3" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">7.89</text>
+<rect x="502.16" y="287.24" width="18.14" height="152.76" fill="#ff7f0e" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="511.2" y="281.2" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">7.23</text>
+<text x="482.0" y="462.0" font-family="sans-serif" font-size="12.5" fill="#444" text-anchor="middle" font-weight="normal">污染高斯
+σ=6.0</text>
+<rect x="553.68" y="109.57" width="18.14" height="330.43" fill="#1f77b4" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="562.8" y="103.6" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">15.63</text>
+<rect x="573.84" y="144.77" width="18.14" height="295.23" fill="#d62728" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="582.9" y="138.8" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">13.97</text>
+<rect x="594.00" y="171.18" width="18.14" height="268.82" fill="#2ca02c" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="603.1" y="165.2" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">12.72</text>
+<rect x="614.16" y="213.07" width="18.14" height="226.93" fill="#ff7f0e" stroke="#ffffff" stroke-width="1.0" opacity="1.0"/>
+<text x="623.2" y="207.1" font-family="sans-serif" font-size="10.5" fill="#333" text-anchor="middle" font-weight="normal">10.74</text>
+<text x="594.0" y="462.0" font-family="sans-serif" font-size="12.5" fill="#444" text-anchor="middle" font-weight="normal">原版含离群
+σ=8.6</text>
+<text x="450.0" y="28.0" font-family="sans-serif" font-size="18" fill="#222" text-anchor="middle" font-weight="bold">图 A2  非高斯噪声下各估计器的 P95 误差（K=20）</text>
+<text x="370.0" y="494.0" font-family="sans-serif" font-size="14" fill="#222" text-anchor="middle" font-weight="normal">GNSS 噪声模型（方差已对齐）</text>
+<text x="20.0" y="250.0" font-family="sans-serif" font-size="14" fill="#222" text-anchor="middle" font-weight="normal" transform="rotate(-90 20 250.0)">二维水平误差 P95 (m)</text>
+<rect x="662.00" y="56.00" width="230.00" height="130.00" fill="#ffffff" stroke="#ccc" stroke-width="1.0" opacity="1.0"/>
+<rect x="668.00" y="62.00" width="22.00" height="14.00" fill="#1f77b4" stroke="none" stroke-width="1.5" opacity="1.0"/>
+<text x="698.0" y="74.0" font-family="sans-serif" font-size="12.5" fill="#222" text-anchor="start" font-weight="normal">EKF</text>
+<rect x="668.00" y="86.00" width="22.00" height="14.00" fill="#d62728" stroke="none" stroke-width="1.5" opacity="1.0"/>
+<text x="698.0" y="98.0" font-family="sans-serif" font-size="12.5" fill="#222" text-anchor="start" font-weight="normal">FGO L2</text>
+<rect x="668.00" y="110.00" width="22.00" height="14.00" fill="#2ca02c" stroke="none" stroke-width="1.5" opacity="1.0"/>
+<text x="698.0" y="122.0" font-family="sans-serif" font-size="12.5" fill="#222" text-anchor="start" font-weight="normal">FGO Huber</text>
+<rect x="668.00" y="134.00" width="22.00" height="14.00" fill="#ff7f0e" stroke="none" stroke-width="1.5" opacity="1.0"/>
+<text x="698.0" y="146.0" font-family="sans-serif" font-size="12.5" fill="#222" text-anchor="start" font-weight="normal">FGO Cauchy</text>
+</svg>

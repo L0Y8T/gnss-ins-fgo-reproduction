@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+
+# Word / Office 临时文件
+~$*.docx
+~$*.xlsx
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# 本地中间产物
+_work/
+*.tmp

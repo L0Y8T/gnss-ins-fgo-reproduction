@@ -1,0 +1,8 @@
+# 本项目零第三方依赖 —— 只需要 Python 3.8+ 标准库。
+#
+# 唯一的例外是可选的对照验证脚本 verify_vs_numpy.py，
+# 它需要 numpy 作为「裁判」来交叉验证手写求解器。
+# 主流程（la / sim / estimators / experiment / plot）完全不需要它。
+#
+# 如需运行 verify_vs_numpy.py：
+# numpy>=1.20

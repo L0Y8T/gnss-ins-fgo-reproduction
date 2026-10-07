@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560">
+<rect width="900" height="560" fill="#ffffff"/>
+<rect x="90.00" y="60.00" width="560.00" height="420.00" fill="#fcfcfc" stroke="#999" stroke-width="1.2" opacity="1.0"/>
+<line x1="90.00" y1="480.00" x2="650.00" y2="480.00" stroke="#e2e2e2" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="484.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">3.83</text>
+<line x1="90.00" y1="410.00" x2="650.00" y2="410.00" stroke="#e2e2e2" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="414.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">4.90</text>
+<line x1="90.00" y1="340.00" x2="650.00" y2="340.00" stroke="#e2e2e2" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="344.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">5.97</text>
+<line x1="90.00" y1="270.00" x2="650.00" y2="270.00" stroke="#e2e2e2" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="274.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">7.03</text>
+<line x1="90.00" y1="200.00" x2="650.00" y2="200.00" stroke="#e2e2e2" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="204.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">8.10</text>
+<line x1="90.00" y1="130.00" x2="650.00" y2="130.00" stroke="#e2e2e2" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="134.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">9.17</text>
+<line x1="90.00" y1="60.00" x2="650.00" y2="60.00" stroke="#e2e2e2" stroke-width="1.0" opacity="1.0"/>
+<text x="80.0" y="64.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="end" font-weight="normal">10.24</text>
+<line x1="90.00" y1="480.00" x2="90.00" y2="485.00" stroke="#999" stroke-width="1.2" opacity="1.0"/>
+<text x="90.0" y="502.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">1</text>
+<line x1="93.76" y1="480.00" x2="93.76" y2="485.00" stroke="#999" stroke-width="1.2" opacity="1.0"/>
+<text x="93.8" y="502.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">2</text>
+<line x1="97.52" y1="480.00" x2="97.52" y2="485.00" stroke="#999" stroke-width="1.2" opacity="1.0"/>
+<text x="97.5" y="502.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">3</text>
+<line x1="105.03" y1="480.00" x2="105.03" y2="485.00" stroke="#999" stroke-width="1.2" opacity="1.0"/>
+<text x="105.0" y="502.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">5</text>
+<line x1="116.31" y1="480.00" x2="116.31" y2="485.00" stroke="#999" stroke-width="1.2" opacity="1.0"/>
+<text x="116.3" y="502.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">8</text>
+<line x1="123.83" y1="480.00" x2="123.83" y2="485.00" stroke="#999" stroke-width="1.2" opacity="1.0"/>
+<text x="123.8" y="502.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">10</text>
+<line x1="142.62" y1="480.00" x2="142.62" y2="485.00" stroke="#999" stroke-width="1.2" opacity="1.0"/>
+<text x="142.6" y="502.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">15</text>
+<line x1="161.41" y1="480.00" x2="161.41" y2="485.00" stroke="#999" stroke-width="1.2" opacity="1.0"/>
+<text x="161.4" y="502.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">20</text>
+<line x1="198.99" y1="480.00" x2="198.99" y2="485.00" stroke="#999" stroke-width="1.2" opacity="1.0"/>
+<text x="199.0" y="502.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">30</text>
+<line x1="274.16" y1="480.00" x2="274.16" y2="485.00" stroke="#999" stroke-width="1.2" opacity="1.0"/>
+<text x="274.2" y="502.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">50</text>
+<line x1="386.91" y1="480.00" x2="386.91" y2="485.00" stroke="#999" stroke-width="1.2" opacity="1.0"/>
+<text x="386.9" y="502.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">80</text>
+<line x1="650.00" y1="480.00" x2="650.00" y2="485.00" stroke="#999" stroke-width="1.2" opacity="1.0"/>
+<text x="650.0" y="502.0" font-family="sans-serif" font-size="12" fill="#555" text-anchor="middle" font-weight="normal">150</text>
+<text x="450.0" y="28.0" font-family="sans-serif" font-size="18" fill="#222" text-anchor="middle" font-weight="bold">图 1  定位精度 vs 窗口大小   （对应 Wen 2021 图 8）</text>
+<text x="370.0" y="534.0" font-family="sans-serif" font-size="14" fill="#222" text-anchor="middle" font-weight="normal">窗口大小 K（历元数，GNSS 1 Hz → 1 历元 = 1 秒）</text>
+<text x="20.0" y="270.0" font-family="sans-serif" font-size="14" fill="#222" text-anchor="middle" font-weight="normal" transform="rotate(-90 20 270.0)">二维水平平均误差 (m)</text>
+<line x1="90.00" y1="383.94" x2="650.00" y2="383.94" stroke="#7f7f7f" stroke-width="1.8" stroke-dasharray="7,5" opacity="1.0"/>
+<text x="98.0" y="376.9" font-family="sans-serif" font-size="12" fill="#7f7f7f" text-anchor="start" font-weight="normal">EKF 基准 (5.30 m)</text>
+<polyline points="90.00,97.00 93.76,97.00 97.52,132.81 105.03,214.30 116.31,277.07 123.83,312.24 142.62,339.65 161.41,344.36 198.99,359.59 274.16,376.38 386.91,409.74 650.00,467.05" fill="none" stroke="#1f77b4" stroke-width="2.4" opacity="1.0" stroke-linejoin="round"/>
+<circle cx="90.00" cy="97.00" r="3.60" fill="#1f77b4" stroke="none" stroke-width="1.0"/>
+<circle cx="93.76" cy="97.00" r="3.60" fill="#1f77b4" stroke="none" stroke-width="1.0"/>
+<circle cx="97.52" cy="132.81" r="3.60" fill="#1f77b4" stroke="none" stroke-width="1.0"/>
+<circle cx="105.03" cy="214.30" r="3.60" fill="#1f77b4" stroke="none" stroke-width="1.0"/>
+<circle cx="116.31" cy="277.07" r="3.60" fill="#1f77b4" stroke="none" stroke-width="1.0"/>
+<circle cx="123.83" cy="312.24" r="3.60" fill="#1f77b4" stroke="none" stroke-width="1.0"/>
+<circle cx="142.62" cy="339.65" r="3.60" fill="#1f77b4" stroke="none" stroke-width="1.0"/>
+<circle cx="161.41" cy="344.36" r="3.60" fill="#1f77b4" stroke="none" stroke-width="1.0"/>
+<circle cx="198.99" cy="359.59" r="3.60" fill="#1f77b4" stroke="none" stroke-width="1.0"/>
+<circle cx="274.16" cy="376.38" r="3.60" fill="#1f77b4" stroke="none" stroke-width="1.0"/>
+<circle cx="386.91" cy="409.74" r="3.60" fill="#1f77b4" stroke="none" stroke-width="1.0"/>
+<circle cx="650.00" cy="467.05" r="3.60" fill="#1f77b4" stroke="none" stroke-width="1.0"/>
+<circle cx="90.00" cy="97.00" r="5.50" fill="none" stroke="#c0392b" stroke-width="2.0"/>
+<text x="90.0" y="85.0" font-family="sans-serif" font-size="12" fill="#c0392b" text-anchor="middle" font-weight="bold">K=1：类 EKF 估计器
+（只保留多轮迭代）</text>
+<circle cx="650.00" cy="467.05" r="5.50" fill="none" stroke="#c0392b" stroke-width="2.0"/>
+<text x="650.0" y="455.0" font-family="sans-serif" font-size="12" fill="#c0392b" text-anchor="middle" font-weight="bold">K=150：≈全量批优化</text>
+<rect x="662.00" y="56.00" width="230.00" height="78.00" fill="#ffffff" stroke="#ccc" stroke-width="1.0" opacity="1.0"/>
+<line x1="668.00" y1="70.00" x2="698.00" y2="70.00" stroke="#1f77b4" stroke-width="2.6" opacity="1.0"/>
+<circle cx="683.00" cy="70.00" r="3.60" fill="#1f77b4" stroke="none" stroke-width="1.0"/>
+<text x="706.0" y="74.0" font-family="sans-serif" font-size="12.5" fill="#222" text-anchor="start" font-weight="normal">FGO（滑动窗口批优化）</text>
+<line x1="668.00" y1="104.00" x2="698.00" y2="104.00" stroke="#7f7f7f" stroke-width="2.2" stroke-dasharray="7,5" opacity="1.0"/>
+<text x="706.0" y="108.0" font-family="sans-serif" font-size="12.5" fill="#7f7f7f" text-anchor="start" font-weight="normal">EKF 基准 (5.30 m)</text>
+</svg>
